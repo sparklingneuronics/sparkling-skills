@@ -1,0 +1,5 @@
+# Local, per-user Claude Code settings — not part of the published marketplace.
+.claude/settings.local.json
+
+# Internal working docs (growth strategy, in-progress specs, AI research) — never published.
+private/

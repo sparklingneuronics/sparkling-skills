@@ -1,0 +1,25 @@
+[
+  {"query": "ask codex AND agy to both review this auth design, then tell me where they agree and disagree", "should_trigger": true},
+  {"query": "ask agy for a second opinion on this race condition in src/worker/queue.ts before I merge", "should_trigger": true},
+  {"query": "/agy review the auth refactor on this branch", "should_trigger": true},
+  {"query": "have gemini take a look at whether my retry/backoff logic in client.go is actually correct", "should_trigger": true},
+  {"query": "get antigravity's take on this API design — i'm torn between a builder and a plain options struct", "should_trigger": true},
+  {"query": "ask agy with Claude Opus to sanity-check this database migration plan before I run it", "should_trigger": true},
+  {"query": "continue with agy and ask it to also add tests for the edge cases it found", "should_trigger": true},
+  {"query": "validate with gemini that my approach to the data migration is sound", "should_trigger": true},
+  {"query": "use agy to research the current best practices for API rate-limiting, with sources", "should_trigger": true},
+  {"query": "see what gemini thinks of this resignation email before I send it", "should_trigger": true},
+  {"query": "have agy run gpt-oss over this concurrency model and tell me if it's safe", "should_trigger": true},
+  {"query": "use agy to create an image to illustrate our architecture discussion", "should_trigger": true},
+
+  {"query": "ask codex to review this function for bugs", "should_trigger": false},
+  {"query": "use codex to create an image of an open medieval manuscript for the slide", "should_trigger": false},
+  {"query": "generate an image of a harbor at dawn for the deck", "should_trigger": false},
+  {"query": "just write the unit tests yourself, don't delegate this to anything", "should_trigger": false},
+  {"query": "explain how antigravity's permission model differs from the old gemini-cli approval modes", "should_trigger": false},
+  {"query": "what's my partner's zodiac sign if they're a Gemini born June 1st?", "should_trigger": false},
+  {"query": "review my PR and tell me if the schema migration in 0042_add_index.sql is safe", "should_trigger": false},
+  {"query": "help me install Antigravity and finish signing in to agy on this laptop", "should_trigger": false},
+  {"query": "i just want to use agy interactively in my own terminal, how do I start it?", "should_trigger": false},
+  {"query": "does anti-gravity actually exist in physics or is it just science fiction?", "should_trigger": false}
+]

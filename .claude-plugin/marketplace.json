@@ -1,0 +1,19 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "sparkling-skills",
+  "description": "Sparkling Neuronics public Claude Code plugins.",
+  "owner": {
+    "name": "Dimitar Stoyanov",
+    "email": "dimitar@sparklingneuronics.ai",
+    "url": "https://github.com/sparklingneuronics"
+  },
+  "plugins": [
+    {
+      "name": "dispatch",
+      "source": "./plugins/dispatch",
+      "description": "Delegate a task to an external AI CLI — OpenAI Codex (/codex) or Google Antigravity (/agy, multi-model: Gemini/Claude/GPT-OSS): second opinions, parallel checks, side tasks, images.",
+      "homepage": "https://github.com/sparklingneuronics/sparkling-skills",
+      "category": "development"
+    }
+  ]
+}
