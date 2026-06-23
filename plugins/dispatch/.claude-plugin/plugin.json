@@ -9,5 +9,6 @@
   },
   "homepage": "https://github.com/sparklingneuronics/sparkling-skills",
   "repository": "https://github.com/sparklingneuronics/sparkling-skills",
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": ["codex", "gemini", "second-opinion", "code-review", "multi-model", "delegation", "openai", "antigravity"]
 }
