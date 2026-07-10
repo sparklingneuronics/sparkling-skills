@@ -36,7 +36,7 @@ Diagnose only on an actual failure: if a call comes back "command not found" / n
 
 Don't gate every call behind a four-part questionnaire — it adds a round-trip before any work happens. Pick the defaults, state them in one line, and run:
 
-- **Model** `gpt-5.5` · **Effort** `medium` · **Sandbox** `read-only` · **Working dir** current.
+- **Model** `gpt-5.6-terra` · **Effort** `medium` · **Sandbox** `read-only` · **Working dir** current.
 
 For read-only work — analysis, review, Q&A, second opinions, the common case — just go:
 

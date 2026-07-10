@@ -43,7 +43,7 @@ is a purpose-grouped set of skills under `plugins/<name>/`. Today there's one:
   read the CLI's source.
 
 ## Verified against
-codex-cli **0.141.0**, agy (Antigravity) **1.0.10**. Re-verify and re-stamp `references/flags.md`
+codex-cli **0.144.1**, agy (Antigravity) **1.0.10**. Re-verify and re-stamp `references/flags.md`
 when bumping support (see each skill's `evals/README.md` checklist). agy is v1.0.x and moves
 fast — expect flag churn.
 

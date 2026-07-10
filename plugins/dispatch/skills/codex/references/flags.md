@@ -1,6 +1,6 @@
 # `codex` CLI reference
 
-Captured against `codex --version` = **codex-cli 0.141.0** (binary at `/opt/homebrew/bin/codex`). Re-run `codex exec --help`, `codex exec resume --help`, and `codex review --help` to refresh if the CLI is upgraded.
+Captured against `codex --version` = **codex-cli 0.144.1** (binary at `/opt/homebrew/bin/codex`). Re-run `codex exec --help`, `codex exec resume --help`, and `codex review --help` to refresh if the CLI is upgraded.
 
 ## Quick map (skill ↔ flag)
 
@@ -8,7 +8,7 @@ Captured against `codex --version` = **codex-cli 0.141.0** (binary at `/opt/home
 |---|---|---|
 | Prompt (one-shot) | positional `[PROMPT]` or stdin (use `-`) | When piped + positional, stdin is appended as `<stdin>` block |
 | Model | `-m, --model <MODEL>` | Free-form string; codex doesn't enumerate |
-| Reasoning effort | `-c model_reasoning_effort="<level>"` | `minimal\|low\|medium\|high\|xhigh` (default `medium`; the 0.141.0 CLI also accepts `none`). Passed via generic `-c key=value`. Works on `exec` and `exec resume` |
+| Reasoning effort | `-c model_reasoning_effort="<level>"` | `minimal\|low\|medium\|high\|xhigh\|max` (default `medium`; `none` also accepted). Passed via generic `-c key=value`. Works on `exec` and `exec resume` |
 | Sandbox | `-s, --sandbox {read-only\|workspace-write\|danger-full-access}` | Default depends on user config |
 | Approval (top-level only, NOT on `exec`) | `codex -a, --ask-for-approval {untrusted\|on-request\|never}` | Only applies to interactive `codex` runs. `codex exec` is inherently non-interactive and rejects `-a` |
 | Working dir | `-C, --cd <DIR>` | Sets agent's working root |
@@ -21,7 +21,7 @@ Captured against `codex --version` = **codex-cli 0.141.0** (binary at `/opt/home
 | Ignore user config | `--ignore-user-config` | Skips `~/.codex/config.toml` |
 | Ignore project rules | `--ignore-rules` | Skips execpolicy `.rules` files |
 | OSS provider | `--oss --local-provider {lmstudio\|ollama}` | Local model dispatch |
-| Web search | `-c web_search="live"` (top-level config key) | The mode control. `--search` is a **TUI-only** flag that maps to this. `--enable web_search` still works but is **deprecated** (it warns → use the config key). Modes: `cached` (**default**; search is **on** by default, maintained index) · `live` (open web) · `disabled` |
+| Web search | `-c web_search="live"` (top-level config key) | The mode control. `--search` is now a **top-level flag** (was TUI-only). `--enable web_search` still works but is **deprecated** (it warns → use the config key). Modes: `cached` (**default**; search is **on** by default, maintained index) · `live` (open web) · `disabled`. On `exec`, use `-c web_search="live"` (no `--search` flag there) |
 | Feature toggle | `--enable <FEATURE>` / `--disable <FEATURE>` | Repeatable. Equivalent to `-c features.<name>=true\|false`. On `exec` and `exec resume` |
 | JSON event stream | `--json` | JSONL events to stdout |
 | Last message to file | `-o, --output-last-message <FILE>` | Only the final message goes to file |
@@ -32,13 +32,16 @@ Captured against `codex --version` = **codex-cli 0.141.0** (binary at `/opt/home
 
 ## Models
 
-`-m` accepts any string — the CLI doesn't enumerate or validate model names in `--help`, so this is a curated guide, not an allow-list; names not listed may still work if your account/profile permits. Status for ChatGPT sign-in (as of codex-cli 0.141.0):
+`-m` accepts any string — the CLI doesn't enumerate or validate model names in `--help`, so this is a curated guide, not an allow-list; names not listed may still work if your account/profile permits. Status for ChatGPT sign-in (as of codex-cli 0.144.1):
 
-- `gpt-5.5` — **current default**, strongest all-round (deepest reasoning; the usual pick)
-- `gpt-5.4` — flagship; the fallback if `gpt-5.5` isn't provisioned
-- `gpt-5.4-mini` — fast and cheaper; good for light tasks and subagents
+- `gpt-5.6-terra` — **current default**, balanced workhorse (the everyday pick)
+- `gpt-5.6-luna` — fastest and cheapest in the 5.6 family; good for light tasks and subagents
+- `gpt-5.6-sol` — flagship, deepest reasoning — **not yet available** for ChatGPT sign-in (API-key only for now)
+- `gpt-5.6` (bare alias) — routes to Sol; **not yet available** for ChatGPT sign-in
+- `gpt-5.5` — previous generation, still available
+- `gpt-5.4` / `gpt-5.4-mini` — still available
 - `gpt-5.3-codex-spark` — ultra-fast text-only **research preview** (ChatGPT **Pro** only)
-- `gpt-5.3-codex` — **deprecated** for ChatGPT sign-in (still works on API-key auth)
+- `gpt-5.2-codex`, `gpt-5.3-codex` — **deprecated** for ChatGPT sign-in
 
 ## Subcommands you may invoke
 
@@ -94,22 +97,22 @@ Gotchas:
 
 **One-shot, read-only review:**
 ```bash
-codex exec -m gpt-5.5 -c model_reasoning_effort="high" --sandbox read-only --skip-git-repo-check "review this function for race conditions" 2>/dev/null
+codex exec -m gpt-5.6-terra -c model_reasoning_effort="high" --sandbox read-only --skip-git-repo-check "review this function for race conditions" 2>/dev/null
 ```
 
 **Refactor with edits in workspace:**
 ```bash
-codex exec -m gpt-5.5 -c model_reasoning_effort="high" --sandbox workspace-write --skip-git-repo-check "rename foo to bar across the repo" 2>/dev/null
+codex exec -m gpt-5.6-terra -c model_reasoning_effort="high" --sandbox workspace-write --skip-git-repo-check "rename foo to bar across the repo" 2>/dev/null
 ```
 
 **Full autonomy (only with explicit user OK):**
 ```bash
-codex exec -m gpt-5.5 -c model_reasoning_effort="xhigh" --sandbox danger-full-access --skip-git-repo-check "implement the spec in PLAN.md and run the tests" 2>/dev/null
+codex exec -m gpt-5.6-terra -c model_reasoning_effort="max" --sandbox danger-full-access --skip-git-repo-check "implement the spec in PLAN.md and run the tests" 2>/dev/null
 ```
 
 **Long prompt via stdin:**
 ```bash
-cat <<'EOF' | codex exec -m gpt-5.5 -c model_reasoning_effort="medium" --sandbox read-only --skip-git-repo-check - 2>/dev/null
+cat <<'EOF' | codex exec -m gpt-5.6-terra -c model_reasoning_effort="medium" --sandbox read-only --skip-git-repo-check - 2>/dev/null
 <paste long prompt here>
 EOF
 ```
@@ -127,12 +130,12 @@ echo "follow-up question" | codex exec --skip-git-repo-check resume <UUID-or-thr
 
 **Structured output for parsing:**
 ```bash
-codex exec -m gpt-5.4-mini --sandbox read-only --skip-git-repo-check --json "list TODOs in src/, return JSON array of {file,line,text}" 2>/dev/null
+codex exec -m gpt-5.6-luna --sandbox read-only --skip-git-repo-check --json "list TODOs in src/, return JSON array of {file,line,text}" 2>/dev/null
 ```
 
 **Save only the final message to a file:**
 ```bash
-codex exec -m gpt-5.5 --sandbox read-only --skip-git-repo-check -o /tmp/last.md "summarize CONTRIBUTING.md" 2>/dev/null
+codex exec -m gpt-5.6-terra --sandbox read-only --skip-git-repo-check -o /tmp/last.md "summarize CONTRIBUTING.md" 2>/dev/null
 ```
 
 **Code review (current changes vs. default):**
