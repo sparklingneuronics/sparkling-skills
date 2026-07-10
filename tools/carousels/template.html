@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1080px;
+    height: 1080px;
+    overflow: hidden;
+    background: #0f1419;
+    color: #e6edf3;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .slide {
+    width: 1080px;
+    height: 1080px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 90px;
+    position: relative;
+  }
+  .slide-cover {
+    align-items: center;
+    text-align: center;
+  }
+  .slide-cover .title {
+    font-size: 58px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -1px;
+  }
+  .slide-cover .body {
+    font-size: 28px;
+    color: #8b949e;
+    margin-top: 28px;
+    line-height: 1.5;
+  }
+  .slide-content .title {
+    font-size: 28px;
+    font-weight: 600;
+    color: #58a6ff;
+    margin-bottom: 36px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+  .slide-content .body {
+    font-size: 34px;
+    line-height: 1.6;
+    color: #c9d1d9;
+  }
+  .slide-content .body strong, .slide-content .body b {
+    color: #e6edf3;
+    font-weight: 600;
+  }
+  .slide-cta {
+    align-items: center;
+    text-align: center;
+  }
+  .slide-cta .title {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -0.5px;
+  }
+  .slide-cta .body {
+    font-size: 26px;
+    color: #8b949e;
+    margin-top: 32px;
+    line-height: 1.6;
+  }
+  .slide-number {
+    position: absolute;
+    bottom: 30px;
+    right: 40px;
+    font-size: 18px;
+    color: #484f58;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+  <div class="slide {{TYPE}}">
+    <div class="title">{{TITLE}}</div>
+    <div class="body">{{BODY}}</div>
+  </div>
+  <div class="slide-number">{{SLIDE_NUM}} / {{TOTAL}}</div>
+</body>
+</html>

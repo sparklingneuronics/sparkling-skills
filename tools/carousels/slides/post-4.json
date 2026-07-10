@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "post": 4,
+    "title": "Consistent Company Voice",
+    "description": "Model specialization: Claude orchestrates, Codex shapes the client-facing voice."
+  },
+  "slides": [
+    {
+      "type": "cover",
+      "title": "1,200 files.\nOne company voice."
+    },
+    {
+      "type": "content",
+      "title": "The problem",
+      "body": "Everything I put in front of a client —\nproposals, service pages, the website —\nneeds to sound like the same company.\n\nConsistent voice."
+    },
+    {
+      "type": "content",
+      "title": "The scale",
+      "body": "By the time I'm ready to write,\nmy workspace has over 1,200 markdown files —\nresearch, competitor analysis, pricing data,\nearlier drafts.\n\nSome of that research ran\nindependently for five or six hours."
+    },
+    {
+      "type": "content",
+      "title": "Claude orchestrates",
+      "body": "Claude navigates through all of it —\npulling the right context\nto help shape the document.\n\nI work through it interactively.\nMany rounds, many changes.\nThis part isn't automatic."
+    },
+    {
+      "type": "content",
+      "title": "Codex shapes the voice",
+      "body": "Then Codex reviews the client-facing text.\nSometimes Gemini too.\n\nNot just grammar.\nThe voice, the tone, how it reads\nto someone deciding whether\nto work with me."
+    },
+    {
+      "type": "content",
+      "title": "Same loop, every surface",
+      "body": "Proposals.\nService pages.\nThe website.\n\nOne consistent voice,\nchecked by a model that writes\nbetter for clients than the one\nthat researched and structured it."
+    },
+    {
+      "type": "cta",
+      "title": "Each model does\nwhat it's genuinely better at.\nNot interchangeably.",
+      "body": "dispatch is the open-source plugin\nI use for this — link's in the first comment."
+    }
+  ]
+}
