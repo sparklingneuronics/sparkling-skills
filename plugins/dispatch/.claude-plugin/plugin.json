@@ -1,7 +1,7 @@
 {
   "name": "dispatch",
   "description": "Delegate a task to an external AI CLI — OpenAI Codex (/codex) or Google Antigravity (/agy, multi-model: Gemini/Claude/GPT-OSS): second opinions, parallel checks, side tasks, images.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": {
     "name": "Dimitar Stoyanov",
     "email": "dimitar@sparklingneuronics.ai",
