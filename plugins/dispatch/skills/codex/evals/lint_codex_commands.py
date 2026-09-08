@@ -41,6 +41,8 @@ SUBCOMMANDS = {
     "app-server", "remote-control", "app", "completion", "update", "doctor",
     "sandbox", "debug", "apply", "archive", "delete", "unarchive", "cloud",
     "exec-server", "features", "plugin", "help",
+    # added in codex-cli 0.153.x
+    "agents", "queue", "migrate-rollouts",
 }
 
 # Flags that consume the following token as their value. We skip that token so
@@ -51,6 +53,8 @@ VALUE_FLAGS = {
     "-p", "--profile", "--base", "--commit", "--title", "--color",
     "--local-provider", "--enable", "--disable", "--remote",
     "--remote-auth-token-env", "-a", "--ask-for-approval", "-s", "--sandbox",
+    # added in codex-cli 0.153.x
+    "--thread", "--message", "--thread-source", "--max-mib-per-second",
 }
 
 # Flags every subcommand accepts; never treat these as drift.
@@ -88,8 +92,17 @@ def get_help_flags(chain: tuple[str, ...], cache: dict) -> set[str] | None:
         cache[chain] = None
         return None
     text = (proc.stdout or "") + "\n" + (proc.stderr or "")
-    # An invalid subcommand path makes codex error instead of printing help.
-    if proc.returncode != 0 and "Usage:" not in text:
+    # An unknown subcommand does NOT error: codex exits 0 and prints the
+    # *parent's* help, whose flag set is a strict superset. Checking the return
+    # code alone would silently validate `codex exec bogus` against
+    # `codex exec`, which is the drift this lint exists to catch. So require the
+    # Usage: line to name the full chain.
+    usage = next((ln for ln in text.splitlines()
+                  if ln.strip().startswith("Usage:")), "")
+    if proc.returncode != 0 or not usage:
+        cache[chain] = None
+        return None
+    if not usage.strip().startswith("Usage: " + " ".join(("codex", *chain)) + " "):
         cache[chain] = None
         return None
     flags = parse_help_flags(text)
