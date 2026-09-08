@@ -3,3 +3,7 @@
 
 # Internal working docs (growth strategy, in-progress specs, AI research) — never published.
 private/
+
+# Local Claude Code state — personal commands/settings, not part of the published marketplace.
+.claude/
+.DS_Store

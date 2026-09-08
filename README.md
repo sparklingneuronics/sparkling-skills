@@ -166,7 +166,7 @@ The `dispatch` plugin bundles both, but each triggers only when you name its too
 By design. dispatch runs only when you explicitly name **codex**, **agy**, or **gemini**, so it never hijacks a request meant for Claude itself (or for another tool). Name the tool to delegate.
 
 #### Which model does it use?
-Codex `gpt-5.5`. `agy` defaults to Gemini 3.5 Flash - or name one inline: "ask agy with Claude Opus", "a quick Gemini take", "with GPT-OSS". Defaults are stated up front so you can override.
+Codex uses whatever your `codex` CLI treats as current - the skill deliberately doesn't pin a model, so it never goes stale. `agy` defaults to Gemini 3.5 Flash - or name one inline: "ask agy with Claude Opus", "a quick Gemini take", "with GPT-OSS". Defaults are stated up front so you can override.
 
 ---
 
@@ -186,7 +186,7 @@ Codex `gpt-5.5`. `agy` defaults to Gemini 3.5 Flash - or name one inline: "ask a
 
 ## Maintenance
 
-Actively maintained - issues and pull requests welcome. Verified against **codex-cli 0.141.0** and **agy (Antigravity) 1.0.10**; each skill re-checks its documented commands against the installed CLI, so it fails loudly rather than silently when a CLI changes.
+Actively maintained - issues and pull requests welcome. Verified against **codex-cli 0.153.4** and **agy (Antigravity) 1.0.10**; each skill re-checks its documented commands against the installed CLI, so it fails loudly rather than silently when a CLI changes.
 
 ## License
 

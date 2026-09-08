@@ -36,34 +36,36 @@ Diagnose only on an actual failure: if a call comes back "command not found" / n
 
 Don't gate every call behind a four-part questionnaire — it adds a round-trip before any work happens. Pick the defaults, state them in one line, and run:
 
-- **Model** `gpt-5.6-terra` · **Effort** `medium` · **Sandbox** `read-only` · **Working dir** current.
+- **Model** codex's own default · **Effort** that model's own default · **Sandbox** `read-only` · **Working dir** current.
+
+Don't pass `-m` or `-c model_reasoning_effort` on a routine call. Codex's lineup turns over every few releases and each model ships its own default effort, so a value pinned here is a value that goes stale between skill updates — and a retired model id fails the call outright. Omitting both means you always get whatever the user's codex considers current. If the user wants to know which model actually ran, codex reports it in its stderr header (`model:` / `reasoning effort:`) — visible by dropping the `2>/dev/null`.
 
 For read-only work — analysis, review, Q&A, second opinions, the common case — just go:
 
-> "Asking codex — gpt-5.5 / medium effort / read-only. Say the word to change any."
+> "Asking codex — its default model, read-only. Say the word to change any."
 
 Then invoke immediately. **The one thing to confirm before running is a writable sandbox**, because that's the only knob that lets codex change the user's files. If the task implies edits or shell side effects, surface the sandbox choice and get a yes first:
 
 - `read-only` — no writes, no side effects. The default. Safe for analysis/review/Q&A.
-- `workspace-write` — edits files in the workspace; shell still gated. Use for refactors/file edits. **Confirm before running.**
+- `workspace-write` — edits files in the workspace; shell still gated. Use for refactors/file edits. **Confirm before running.** Be accurate about the scope when you describe it: the writable set defaults to the working dir **plus `/tmp` and `$TMPDIR`**, not the working dir alone.
 - `danger-full-access` — full filesystem + network. **Only with explicit, this-call permission.**
 
-If the user named params inline (`/codex --model gpt-5.4-mini --sandbox workspace-write refactor X`), honor them and skip the preamble. The full model list, effort levels (`minimal|low|medium|high|xhigh`, default `medium`), and working-dir flag (`-C <DIR>`) are in `references/flags.md` — only surface alternatives if the user wants to tune. Reach for higher effort on genuinely hard tasks.
+If the user named params inline (`/codex --model gpt-5.6-luna --sandbox workspace-write refactor X`), honor them and skip the preamble. The model list, effort levels (roughly `low|medium|high|xhigh`, plus `max`/`ultra`/`none` on *some* models — the valid set is genuinely per-model, and `minimal` now fails everywhere), and working-dir flag (`-C <DIR>`) are in `references/flags.md` — only surface alternatives if the user wants to tune. On a genuinely hard task it's worth reaching for depth explicitly with `-c model_reasoning_effort="high"`.
 
-> **Note:** `codex exec` is non-interactive — there's no `-a/--ask-for-approval` flag, so the sandbox setting alone governs what codex can touch (which is why it's the one knob that carries risk). `--dangerously-bypass-approvals-and-sandbox` is for externally-sandboxed environments only — never set it without explicit user OK.
+> **Note:** `codex exec` is non-interactive — there's no `-a/--ask-for-approval` flag, so the sandbox setting alone governs what codex can touch (which is why it's the one knob that carries risk). There *is* `--approve-for-me`, but read what it actually does before offering it: it runs under `workspace-write` **and auto-approves escalations** — verified writing outside the workspace where a plain `--sandbox workspace-write` refused. So it sits **above** `workspace-write` on the risk ladder, not between it and `read-only`. It also **cannot be combined with `-s/--sandbox`** (that's a parse error, exit 2), so using it means giving up your sandbox choice entirely. Treat it like `danger-full-access`: only on explicit, this-call permission. `--dangerously-bypass-approvals-and-sandbox` is for externally-sandboxed environments only — never set it without explicit user OK.
 
 ## Invocation
 
 Call `codex` directly — no bundled script, so this works wherever Claude Code runs (macOS, Linux, Windows). Standard one-shot:
 
 ```bash
-codex exec --skip-git-repo-check -m <model> -c model_reasoning_effort="<effort>" --sandbox <sandbox> "<prompt>" 2>/dev/null
+codex exec --skip-git-repo-check --sandbox <sandbox> "<prompt>" 2>/dev/null
 ```
 
 Long or multi-line prompts — pipe via stdin and pass `-` as the prompt (cleaner quoting):
 
 ```bash
-cat <<'EOF' | codex exec --skip-git-repo-check -m <model> -c model_reasoning_effort="<effort>" --sandbox <sandbox> - 2>/dev/null
+cat <<'EOF' | codex exec --skip-git-repo-check --sandbox <sandbox> - 2>/dev/null
 <prompt body>
 EOF
 ```
@@ -71,7 +73,8 @@ EOF
 Notes:
 - **`--skip-git-repo-check`** — always include on `exec`/`resume` (codex otherwise refuses to run outside a git repo, and a working-dir check shouldn't block delegation). Do **not** pass it to `codex review` — that subcommand rejects it.
 - **stderr.** `2>/dev/null` suppresses codex's event-stream / thinking-token noise. If the call exits non-zero **or** returns empty output, re-run once with `2>&1` (drop the `/dev/null`) to surface the real error before giving up. These commands run through Claude Code's Bash tool, which is POSIX on all three OSes (Git Bash on Windows — install Git for Windows), so the redirection behaves the same everywhere.
-- **Web search / research.** Codex has web search **on by default** in `cached` mode (a maintained index) — so it isn't limited to its training cutoff, but "current" claims can still be stale. For live open-web research, add `-c web_search="live"` (the top-level config key; modes: `live` · `cached` · `disabled`). `--search` is a TUI-only flag that maps to the same thing. (`--enable web_search` still works but is **deprecated** — it prints a warning and redirects you to the `web_search` config key — so prefer `-c web_search="live"`.)
+- **Tuning model/effort.** Add `-m <model>` or `-c model_reasoning_effort="<effort>"` only when the user asks for a specific one, or when you're deliberately reaching for more depth on a hard problem. Routine calls omit both (see Parameters).
+- **Web search / research.** Codex has web search **on by default** — so it isn't limited to its training cutoff, but "current" claims can still be stale. For live open-web research, add `-c web_search="live"` (the top-level config key; modes: `disabled` · `cached` · `indexed` · `live`). `--search` is a top-level flag that maps to the same thing — it is **not** accepted on `exec`, so use the config key here. (`--enable web_search` still works but is **deprecated** — it warns that web search is already on by default.)
 - **Structured output.** Add `--json` (JSONL event stream) or `-o, --output-last-message <FILE>` to capture only the final message to disk.
 - **Extra-writable directory** outside the workspace: `--add-dir <PATH>`.
 - **Images** (multi-modal): `-i, --image <FILE>` (repeatable on `exec`).
@@ -93,7 +96,7 @@ Codex persists a thread per conversation, so don't treat every call as a blank s
 `--json` makes Codex surface the session id. Redirect the (noisy) event stream to a file so it stays out of your context, and let `-o <ansfile>` capture the clean answer:
 
 ```bash
-codex exec --json --skip-git-repo-check -m <model> -c model_reasoning_effort="<effort>" --sandbox <sandbox> -o <ansfile> "<prompt>" 2>/dev/null > <eventsfile>
+codex exec --json --skip-git-repo-check --sandbox <sandbox> -o <ansfile> "<prompt>" 2>/dev/null > <eventsfile>
 head -n 1 <eventsfile>   # → {"type":"thread.started","thread_id":"<UUID>"}
 ```
 
@@ -126,7 +129,7 @@ codex exec --skip-git-repo-check resume <UUID> -o <ansfile> "<bridge + prompt>" 
 
 - **Resume by stored UUID, not `--last`.** `--last` just grabs the newest session — which may be a different topic's thread. Use it only as a fallback when there's exactly one obvious thread and you have no stored id. A session also resumes by **thread name**, but names can't be set from `codex exec` (only the interactive TUI), so in practice the UUID is the handle.
 - **Overrides (only if the user asks):** `exec resume` accepts `-m, --model` and `-c model_reasoning_effort=...`, so you can switch model or effort mid-thread. It has **no `-s, --sandbox`** — the sandbox is always inherited; if the user needs a different one, start a fresh thread instead.
-- `--all` disables cwd-filtering for name/`--last` lookups (resume-by-UUID is already cwd-independent). To branch a thread instead of continuing it, use the top-level `codex fork`. See `references/flags.md`.
+- `--all` disables cwd-filtering for name/`--last` lookups (resume-by-UUID is already cwd-independent). To **branch** a thread instead of continuing it — e.g. explore an alternative without polluting the original — use `codex exec fork <UUID> "<prompt>"`. It returns a *new* thread id that inherits the parent's context, so record it as a separate topic. It also inherits the parent's **sandbox** and takes no `-s/--sandbox` of its own — so forking a thread that was created writable (an image thread, say) carries write access forward with no way to downgrade; start a fresh thread instead if that matters. Note the top-level `codex fork` is the interactive picker, not this. See `references/flags.md`.
 
 ## Code review variant
 
@@ -136,7 +139,7 @@ If the user asks "have codex review my changes" / "run codex review":
 codex review 2>/dev/null
 ```
 
-This runs `codex review` (a top-level subcommand purpose-built for repo review). No model/sandbox negotiation needed — it picks defaults appropriate for read-only review work.
+This runs `codex review` (a top-level subcommand purpose-built for repo review). No model/sandbox negotiation needed. Note neither review form accepts `-s/--sandbox`, so you aren't setting one — it runs at whatever the user's config specifies. Don't tell the user it's read-only; say you didn't choose a sandbox for it.
 
 `codex review` works on git changes, so it needs a real repo — do **not** pass `--skip-git-repo-check` here (the subcommand rejects it). Scope the review to match what the user means by "my changes":
 
@@ -144,6 +147,12 @@ This runs `codex review` (a top-level subcommand purpose-built for repo review).
 - `codex review --base main` — everything on this branch vs. `main` (good for "review my PR")
 - `codex review --commit <sha>` — a single commit
 - add `--title "<text>"` to label the summary, or pass custom instructions as the prompt (`codex review "focus on error handling"`)
+
+**If you need to capture the review** to a file — or run it on a specific model — use the `exec` form instead. The two run the same review, but as of codex 0.153.x the top-level `codex review` carries only the scoping flags, while `codex exec review` also takes `-m`, `-o`, `--json`, and `--skip-git-repo-check`:
+
+```bash
+codex exec review --uncommitted --skip-git-repo-check -o <ansfile> 2>/dev/null
+```
 
 ## Image generation
 
@@ -179,6 +188,7 @@ Save edits to a new filename (`-v2`) rather than overwriting unless the user ask
 ### Notes
 - **Default to the built-in path** (no API key). Codex's own imagegen skill decides built-in vs. its CLI fallback — you don't manage that. The built-in model is `gpt-image-2`, and an `OPENAI_API_KEY` is **not** required (a key only switches large batches to API-rate billing). One caveat: `gpt-image-2` has **no native transparency** — for a genuinely transparent background, either ask codex to use the older `gpt-image-1.5` (which reportedly still supports it) or generate on a flat chroma-key color and alpha-strip it; flag this before proceeding.
 - It's `codex exec` like everything else — output-handling and "treat it as a peer" rules still apply, and the image thread counts as a topic in your registry.
+- **Verified end-to-end** on 0.153.4: a plain `codex exec --sandbox workspace-write` image request reported *"Saved using built-in image generation"* with no `OPENAI_API_KEY` set, wrote the PNG into the working directory, **and** kept a copy at `$CODEX_HOME/generated_images/<session-uuid>/exec-<id>.png`. The file came back `8-bit/color RGB` — no alpha channel, which is the no-transparency caveat above showing up in practice. Expect it to take ~1 minute; that's normal, not a hang.
 
 ## Output handling
 
@@ -186,7 +196,7 @@ After a successful call:
 1. **The answer is already on screen** — it came back in the command output (or the answer-file you read). **Don't reprint it**; echoing the whole response back is the repetition to avoid. Go straight to your value: a tight synthesis, where you agree or push back, and what it means next — quoting at most a short phrase to anchor a point. (Surface the raw text yourself only if it genuinely isn't visible anywhere — and then once, never twice.)
 2. You're tracking this thread's id (see Topic-aware sessions), so the user can just say "check with codex" again later and you'll resume the right thread — they don't manage session ids. (`codex resume` interactively still drops them into the TUI if they want.)
 3. If the model produced edits in `workspace-write` or `danger-full-access`, run `git status` and summarize what changed before doing anything else. Treat those edits like any other untracked work — do not auto-commit.
-4. Restate model, reasoning effort, and sandbox in the follow-up offer so the user can override them.
+4. Restate the **sandbox** in the follow-up offer — that's the knob you chose, and the one worth overriding. Model and effort were codex's own defaults rather than yours; say so if it matters, and offer to pin either (`-m`, `-c model_reasoning_effort`) if the user wants a specific one.
 
 ## Critical evaluation of codex output
 
@@ -208,9 +218,11 @@ Frame as a discussion, not a correction. Either AI could be wrong. Let the user 
 
 - **Non-zero exit** → stop. Surface stderr (re-run with `2>&1`). Ask the user before retrying. Never silently escalate sandbox/approval to "make it work."
 - **Auth errors** → have the user run `codex login` once, then retry. `codex doctor` diagnoses auth/config/runtime health if the cause is unclear.
-- **Unknown model** (`-m` rejected / model-not-found) → the CLI doesn't validate model names up front, so a typo or retired model id fails at call time. Confirm the model against `references/flags.md`, or drop `-m` to fall back to the account default, then retry.
+- **Unknown model** (`-m` rejected / *"not supported when using Codex with a ChatGPT account"*) → the CLI doesn't validate model names up front, so a typo, a retired id, or a model the user's plan doesn't carry fails at call time. **Drop `-m` and retry on the default** — that's the fix in almost every case. Only go hunting in `references/flags.md` if the user specifically needs that model.
+- **Unsupported reasoning effort** — two shapes: *"'<effort>' is not supported with the '<model>' model. Supported values are: …"*, or *"The following tools cannot be used with reasoning.effort 'minimal': web_search."* Effort levels are genuinely per-model (`gpt-6-astra` rejects `none`; `gpt-5.5` rejects `max`), so the fix is the same either way: **drop `-c model_reasoning_effort` and retry on the model's own default**, and only consult `references/flags.md` if the user needs a specific level.
 - **Git-repo-check error despite `--skip-git-repo-check`** → check the binary version and that the flag is on `exec`/`exec resume`, not on `review` (which rejects it).
 - **Empty output with exit 0** → re-run with `2>&1` to get diagnostics; codex may have refused or produced no message.
+- **A blocked write still exits 0.** A sandbox refusal is *not* a non-zero exit — codex returns 0, and the only machine-readable trace is on stderr (`patch rejected: writing is blocked by read-only sandbox`). So never infer "the edit landed" from the exit code: after any write task, confirm against the filesystem (`git status`, or stat the path) before reporting success. This is the failure mode most likely to make you tell the user something worked when it didn't.
 
 ## Things NOT to do
 
