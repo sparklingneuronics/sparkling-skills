@@ -49,7 +49,8 @@ Don't set `version` in **both** `plugin.json` and the marketplace entry — `plu
 silently. The marketplace entry here intentionally omits `version`.
 
 Before every release: run the eval lints (see [`../CLAUDE.md`](../CLAUDE.md)) and
-`claude plugin validate .`.
+`claude plugin validate .`, and add an entry for the new version to
+[`../CHANGELOG.md`](../CHANGELOG.md).
 
 ## Adding more plugins
 

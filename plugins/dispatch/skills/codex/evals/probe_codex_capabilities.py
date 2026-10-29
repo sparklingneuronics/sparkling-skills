@@ -54,8 +54,8 @@ TRIVIAL_PROMPT = "Reply with exactly the single word OK and nothing else."
 # possible (so a newly shipped model is picked up automatically); this list is
 # the fallback and the ordering hint.
 FALLBACK_MODELS = [
-    "gpt-6-astra", "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna",
-    "gpt-5.5", "gpt-5.4-mini",
+    "gpt-6.1-sol", "gpt-6-astra", "gpt-6.1-terra", "gpt-6-sol", "gpt-6-luna",
+    "gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna",
 ]
 EFFORTS = ["none", "low", "medium", "high", "xhigh", "max", "ultra", "minimal"]
 

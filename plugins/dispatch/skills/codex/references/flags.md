@@ -1,6 +1,6 @@
 # `codex` CLI reference
 
-Captured against `codex --version` = **codex-cli 0.153.4** (binary at `/opt/homebrew/bin/codex`). Re-run `codex exec --help`, `codex exec resume --help`, `codex review --help`, and `codex exec review --help` to refresh if the CLI is upgraded.
+Captured against `codex --version` = **codex-cli 0.165.0** (binary at `/opt/homebrew/bin/codex`). Re-run `codex exec --help`, `codex exec resume --help`, `codex exec fork --help`, `codex review --help`, and `codex exec review --help` to refresh if the CLI is upgraded.
 
 ## Quick map (skill ↔ flag)
 
@@ -8,12 +8,13 @@ Captured against `codex --version` = **codex-cli 0.153.4** (binary at `/opt/home
 |---|---|---|
 | Prompt (one-shot) | positional `[PROMPT]` or stdin (use `-`) | When piped + positional, stdin is appended as `<stdin>` block |
 | Model | `-m, --model <MODEL>` | Free-form string; codex doesn't enumerate. **Omit it** to get the account/CLI default — see [Models](#models) |
-| Reasoning effort | `-c model_reasoning_effort="<level>"` | `low\|medium\|high\|xhigh` are safe everywhere; `none`, `max`, `ultra` vary **per model** and `minimal` always fails — see the probe table in [Reasoning effort](#reasoning-effort) before pinning one. Passed via generic `-c key=value`. Works on `exec` and `exec resume` |
+| Reasoning effort | `-c model_reasoning_effort="<level>"` | `low\|medium\|high\|xhigh\|max` work on every current model; `none` is rejected by some (including the default, `gpt-6.1-sol`) and `minimal` always fails — see the probe table in [Reasoning effort](#reasoning-effort) before pinning one. Passed via generic `-c key=value`. Works on `exec` and `exec resume` |
 | Sandbox | `-s, --sandbox {read-only\|workspace-write\|danger-full-access}` | Default depends on user config. `workspace-write`'s writable roots default to **`[workdir, /tmp, $TMPDIR]`** — wider than the name implies. See [Sandbox behaviour](#sandbox-behaviour-verified) |
 | Auto-reviewed approvals | `--approve-for-me` | Runs under `workspace-write` **and auto-grants escalations** — verified writing outside the workspace where plain `-s workspace-write` refused. **Mutually exclusive with `-s/--sandbox`**: combining them is a parse error (exit 2, no API call). Sits *above* `workspace-write` on the risk ladder, not below it. On `exec`, top-level, and `queue` |
 | Approval (top-level only, NOT on `exec`) | `codex -a, --ask-for-approval {on-request\|never}` | Only applies to interactive `codex` runs. `codex exec` is inherently non-interactive and rejects `-a`. **`untrusted` was removed** in 0.153.x |
 | Working dir | `-C, --cd <DIR>` | Sets agent's working root |
 | Extra writable dir | `--add-dir <DIR>` | Repeatable. Outside workspace |
+| Isolated worktree | `--worktree` | Runs the session in a **new** managed git worktree under `~/.codex/worktrees/`, checked out from the last commit (detached HEAD) — so codex doesn't see uncommitted changes, and its edits stay out of your tree. Needs a git repo. On `exec`, all three `exec` sub-subcommands, top-level, and `queue`. See [Sandbox behaviour](#sandbox-behaviour-verified) |
 | Skip git check | `--skip-git-repo-check` | Always include on `exec` / `exec resume` / `exec review` — avoids false-fail outside repos. **Not** accepted by top-level `codex review` |
 | Image attach | `-i, --image <FILE>` | Multi-modal. Repeatable on `exec`; single on `resume` |
 | Profile | `-p, --profile <CONFIG_PROFILE_V2>` | Layers `$CODEX_HOME/<name>.config.toml` on top of base user config |
@@ -26,6 +27,8 @@ Captured against `codex --version` = **codex-cli 0.153.4** (binary at `/opt/home
 | Web search | `-c web_search="live"` (top-level config key) | The mode control. Modes: `disabled` · `cached` · `indexed` · `live`. Search is **on by default**. `--search` is a **top-level flag** (not on `exec`). `--enable web_search` still works but is **deprecated** — it warns "web search is enabled by default" |
 | Feature toggle | `--enable <FEATURE>` / `--disable <FEATURE>` | Repeatable. Equivalent to `-c features.<name>=true\|false`. Inspect names with `codex features list` |
 | Remote app server | `--remote <ADDR>` / `--remote-auth-token-env <ENV_VAR>` | Drive a remote app-server (`ws://`, `wss://`, `unix://`). Top-level, `agents`, `queue` |
+| Skip background server | `--no-daemon` | Top-level (interactive) only. Runs without the shared background server |
+| Cyber access program | `--cyber-access-program {standard\|daybreak_blue\|daybreak_red}` | Experimental, OpenAI provider only. Requests a cyber-security access program ("Daybreak") for one turn; omit it to use server defaults. On `exec`, `exec resume`, `exec fork` (needs a prompt); listed on `exec review` but not supported there. The model catalog shows only `standard` for this account |
 | JSON event stream | `--json` | JSONL events to stdout |
 | Last message to file | `-o, --output-last-message <FILE>` | Only the final message goes to file |
 | Strict output schema | `--output-schema <FILE>` | JSON Schema for the final response. Now also on `exec resume` / `exec review` |
@@ -37,38 +40,41 @@ Captured against `codex --version` = **codex-cli 0.153.4** (binary at `/opt/home
 
 `-m` accepts any string — the CLI doesn't enumerate or validate model names in `--help`. **The skill's default is to omit `-m` entirely** and let codex use the account/CLI default. That's deliberate: model lineups churn every few releases, and a hardcoded id is the exact thing that goes stale between skill updates. Pass `-m` only when the user names a model, or when you have a specific reason (a cheap model for a trivial side task).
 
-Availability below was probe-tested against the live API on **ChatGPT sign-in** (codex-cli 0.153.4). The lineup and per-model metadata come from the CLI's own embedded model presets. An API-key account may see a different set.
+Availability below was probe-tested against the live API on **ChatGPT sign-in** (codex-cli 0.165.0). The lineup and descriptions come from `codex debug models`. An API-key account may see a different set.
 
 | Model | Status on ChatGPT sign-in | What it's for |
 |---|---|---|
-| `gpt-6-astra` | ✅ **the current default** | "Our most capable model for complex, demanding work." Needs codex ≥ **0.153.0** — don't hardcode it if you care about older CLIs |
-| `gpt-5.6-sol` | ✅ available | "Latest frontier agentic coding model." Deepest 5.6 reasoning |
-| `gpt-5.6-terra` | ✅ available | Balanced everyday workhorse — the old default |
-| `gpt-5.6-luna` | ✅ available | Fastest and cheapest in the 5.6 family; good for light tasks |
-| `gpt-5.5` | ✅ available | Previous generation. Effort caps at `xhigh` — `max` errors |
-| `gpt-5.4-mini` | ⚠️ still accepted, but **retired** | Retirement date 2026-08-31, migrates to `gpt-5.6-luna`. Treat as going away; don't use in examples |
-| `gpt-5.4` | ❌ rejected | Retired 2026-08-31 → `gpt-5.6-terra` |
-| `gpt-5.6` (bare alias) | ❌ rejected | *"not supported when using Codex with a ChatGPT account"* |
-| `gpt-5.6-pro` | ❌ rejected | Same — not on the ChatGPT path |
-| `gpt-5.2` | ❌ rejected | Listed in presets but refused on ChatGPT sign-in |
-| `gpt-5.2-codex`, `gpt-5.3-codex`, `gpt-5.3-codex-spark` | ❌ gone | Dropped from the presets entirely |
-| `gpt-daybreak-blue-latest` / `gpt-daybreak-red-latest` | ❌ rejected | Cyber-specialty models (`model_specialty: cyber`) — blue is defensive, red is cyber-permissive for authorized work. Hidden; not on the ChatGPT path |
+| `gpt-6.1-sol` | ✅ **the current default** | "Latest workhorse model for coding and everyday work." Default since 0.161.0. Rejects effort `none` |
+| `gpt-6-astra` | ✅ available | "Frontier intelligence for the most demanding work." The default on 0.153.x. Rejects effort `none` |
+| `gpt-6.1-terra` | ✅ available | Added to the catalog in 0.165.0 |
+| `gpt-6-sol` | ✅ available | "Previous generation workhorse model." |
+| `gpt-6-luna` | ✅ available | "Fast and affordable model for easier tasks." The pick for a cheap side task |
+| `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna` | ✅ available | Now labelled "older" in the catalog. Don't use in examples |
+| `gpt-reserve` | ✅ accepted, but **hidden** | "Fast and affordable agentic coding model." `visibility: hide` — not in the picker; don't rely on it |
+| `gpt-5.5` | ❌ rejected | *"not supported when using Codex with a ChatGPT account"* — was available on 0.153.4; now gone from the catalog |
+| `gpt-5.4-mini` | ❌ rejected | Same error. Retired 2026-08-31 |
+| `gpt-5.4`, `gpt-5.6` (bare), `gpt-5.6-pro`, `gpt-5.2`, `gpt-5.x-codex` | ❌ rejected / gone | Last probed on 0.153.4 |
+| `gpt-daybreak-*` | ❌ gone | No longer in the catalog. Daybreak is now an access program — see `--cyber-access-program` in the [Quick map](#quick-map-skill--flag) |
 | `codex-auto-review` | internal | The model behind `--approve-for-me`. Not for direct use |
 
-Context window is 272k on every current model (272k–872k max depending on model).
+Context window is 272k on most models and 500k on the 6.1 models (`gpt-6.1-sol`, `gpt-6.1-terra`); the max is 872k on all of them.
+
+> **The user's config can pin the model.** "Omit `-m`" gives you the user's configured default, which is not necessarily the CLI's — a `model = "…"` / `model_reasoning_effort = "…"` in `~/.codex/config.toml` wins. To see the CLI's own default, add `--ignore-user-config` (auth still works) and read the stderr header.
 
 ## Reasoning effort
 
-Levels are **per-model** — there is no single valid set. This table is a full live probe of every model × effort combination on ChatGPT sign-in (codex-cli 0.153.4); ✅ = the call succeeded, ❌ = the API rejected it.
+Levels are **per-model** — there is no single valid set. This table is a full live probe of every model × effort combination on ChatGPT sign-in (codex-cli 0.165.0); ✅ = the call succeeded, ❌ = the API rejected it.
 
 | Model | `none` | `low` | `medium` | `high` | `xhigh` | `max` | `ultra` | `minimal` |
 |---|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| `gpt-6.1-sol` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `gpt-6-astra` | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `gpt-6.1-terra` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `gpt-6-sol` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| `gpt-6-luna` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `gpt-5.6-sol` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `gpt-5.6-terra` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `gpt-5.6-luna` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `gpt-5.5` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-| `gpt-5.4-mini` | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
 
 Regenerate with `python3 evals/probe_codex_capabilities.py --matrix --markdown`; it sweeps the
 `visibility: list` models from `codex debug models`.
@@ -80,14 +86,16 @@ Use the paid sweep only to check where the catalog and the API actually disagree
 
 Four traps live in that table:
 
-- **`gpt-6-astra` rejects `none`** — *"'none' is not supported with the 'gpt-6-astra' model. Supported values are: 'low', 'medium', 'high', 'xhigh', and 'max'."* Astra is the CLI's default model, so this is the easiest one to trip over.
-- **The stderr header's `reasoning effort: none` means *unset*, not the `none` level.** A default astra run prints `reasoning effort: none` and succeeds, while passing `-c model_reasoning_effort=none` to that same model errors. Don't read the header as a valid value to echo back.
-- **`max` is not universal** — `gpt-5.5` and `gpt-5.4-mini` top out at `xhigh`.
-- **`ultra` is accepted more widely than it is advertised.** `codex debug models` enumerates it for `gpt-6-astra`, `gpt-5.6-sol` and `gpt-5.6-terra` only — yet a live call passes on `gpt-5.6-luna`, `gpt-5.5` and `gpt-5.4-mini` too, and the header echoes `reasoning effort: ultra`. It also never appears in the API's own rejection messages, which enumerate only `'none', 'low', 'medium', 'high', 'xhigh', and 'max'`. The catalog describes it as "maximum reasoning with automatic task delegation", which suggests it's resolved client-side rather than sent as a `reasoning.effort` value. Treat it as real where the catalog lists it, and don't rely on it doing something different from `max` where it doesn't.
+- **`gpt-6.1-sol` and `gpt-6-astra` reject `none`** — *"'none' is not supported with the 'gpt-6.1-sol' model. Supported values are: 'low', 'medium', 'high', 'xhigh', and 'max'."* `gpt-6.1-sol` is the CLI's default model (astra was, on 0.153.x), so this is the easiest one to trip over.
+- **The stderr header's `reasoning effort: none` means *unset*, not the `none` level.** A default `gpt-6.1-sol` run with no effort configured prints `reasoning effort: none` and succeeds, while passing `-c model_reasoning_effort=none` to that same model errors. Don't read the header as a valid value to echo back.
+- **The catalog doesn't list `none` for any model**, yet the API accepts it on every model except `gpt-6.1-sol` and `gpt-6-astra` (and its own rejection messages list it). So `codex debug models` can't tell you where `none` works — only the probe can.
+- **`ultra` is accepted more widely than it is advertised.** `codex debug models` lists it on every model except the luna ones (`gpt-6-luna`, `gpt-5.6-luna`) — yet a live call passes on those too, and the header echoes `reasoning effort: ultra`. It also never appears in the API's own rejection messages, which enumerate only `'none', 'low', 'medium', 'high', 'xhigh', and 'max'`. The catalog describes it as "maximum reasoning with automatic task delegation", which suggests it's resolved client-side rather than sent as a `reasoning.effort` value. Treat it as real where the catalog lists it, and don't rely on it doing something different from `max` where it doesn't.
 
-**`minimal` is dead in practice, but for two different reasons.** On astra and the 5.6 family the API rejects the value outright. On `gpt-5.5` / `gpt-5.4-mini` the value still exists, and the call instead fails with *"The following tools cannot be used with reasoning.effort 'minimal': web_search."* — because web search is on by default. Either way: don't emit `minimal`.
+**`max` is now universal** across the listed models. On 0.153.4 `gpt-5.5` and `gpt-5.4-mini` capped at `xhigh`; both are gone from the ChatGPT path.
 
-**Defaults are per-model too.** `gpt-6-astra` and `gpt-5.6-sol` default to `low`; `gpt-5.6-terra`, `gpt-5.6-luna`, and `gpt-5.5` default to `medium`. Omitting `-c model_reasoning_effort` gives you the model's own default rather than a fixed `medium` — one more reason to omit it unless you're deliberately reaching for depth.
+**`minimal` is dead.** Every model rejects it outright (*"Unsupported value: 'minimal' is not supported with …"*). On 0.153.4 it also failed a second way on `gpt-5.5` / `gpt-5.4-mini` (*"The following tools cannot be used with reasoning.effort 'minimal': web_search."*), but those models are gone. Don't emit `minimal`.
+
+**Defaults are per-model too.** `gpt-6.1-sol`, `gpt-6-astra`, `gpt-6.1-terra` and `gpt-5.6-sol` default to `low`; `gpt-6-sol`, `gpt-6-luna`, `gpt-5.6-terra` and `gpt-5.6-luna` default to `medium`. Omitting `-c model_reasoning_effort` gives you the model's own default (or the user's configured one — see [Models](#models)) rather than a fixed `medium` — one more reason to omit it unless you're deliberately reaching for depth.
 
 ## Sandbox behaviour (verified)
 
@@ -99,6 +107,12 @@ Probed live on 0.153.4, because the flag names undersell what actually happens:
 - **`-C, --cd <DIR>` overrides the shell's cwd**, and codex's own subshells run in that directory.
 - **`--ephemeral` leaves no rollout file** — a normal run adds one file under `~/.codex/sessions/…`, an ephemeral run adds none, while still running normally.
 - **`--approve-for-me` is not a milder `workspace-write`.** Its header reads `approval: on-request` + `sandbox: workspace-write [workdir, /tmp, $TMPDIR]`, and with `/tmp` excluded from the roots it *still* wrote outside the workspace — narrating "this requires elevated filesystem permission" and granting itself the escalation with no prompt. The identical run with `-s workspace-write` refused. And it is mutually exclusive with `-s/--sandbox`.
+- **`--worktree` moves the session, not just the writes** (probed on 0.165.0). Each run creates a **new** worktree at `~/.codex/worktrees/<4-hex>/<repo-name>`, on a detached HEAD at the current commit, and codex works there: a `workspace-write` run wrote its file into the worktree and left the original tree untouched. Three consequences:
+  - **Codex doesn't see uncommitted changes.** With an uncommitted edit in the main tree, a `--worktree` run read the committed version of the file.
+  - **Edits come back uncommitted, in the worktree** — `git status` in the user's tree shows nothing. Look at `git worktree list` and diff inside that path.
+  - **Worktrees aren't cleaned up.** Two runs left two worktrees; remove them with `git worktree remove <path>`.
+  
+  Outside a git repo it fails (`fatal: not a git repository`, exit 1) even with `--skip-git-repo-check`.
 
 > ⚠️ **A denied write still exits 0.** Every sandbox refusal above returned exit status 0. The exit code tells you the *call* succeeded, not that the *edit* happened — verify against the filesystem.
 
@@ -112,7 +126,7 @@ Probed live on 0.153.4, because the flag names undersell what actually happens:
 | `codex exec resume [SESSION_ID] [PROMPT]` | Resume a previous session by UUID (a TUI-set thread name also works, but `exec`-created threads have only a UUID) |
 | `codex exec resume --last [PROMPT]` | Resume most recent session |
 | `codex exec review [PROMPT]` | Code review against the current repo, **scriptable** — has `-m`, `--json`, `-o`, `--skip-git-repo-check`. Prefer this one |
-| `codex review [PROMPT]` | Same review, top-level. **No `-m`, no `--json`, no `-o`** as of 0.153.x — fine for a plain human-readable review, not for capture |
+| `codex review [PROMPT]` | Same review, top-level. **No `-m`, no `--json`, no `-o`** (unchanged from 0.153.x through 0.165.0) — fine for a plain human-readable review, not for capture |
 | `codex exec fork <SESSION_ID> [PROMPT]` | Branch a thread by UUID into a **new** session — non-interactive, so this is the one a skill uses. Verified: returns a fresh `thread_id` and inherits the parent's context |
 | `codex fork` (top-level, interactive) | Picker-driven fork — drops into the TUI. Same name, wrong tool for scripted use |
 | `codex resume` (top-level, interactive) | Picker-driven resume — drops into TUI |
@@ -132,7 +146,7 @@ Probed live on 0.153.4, because the flag names undersell what actually happens:
 
 They run the same review, but the flag surfaces diverged. Top-level `codex review` takes only the scoping flags (`--uncommitted`, `--base`, `--commit`, `--title`) plus `-c` / `--enable` / `--disable` / `--strict-config`. `codex exec review` takes all of those **and** the exec-family flags — `-m`, `--json`, `-o`, `--skip-git-repo-check`, `--output-schema`, `--ephemeral`, `--thread-source`.
 
-**None of the `exec` sub-subcommands take a sandbox.** `exec resume`, `exec review` and `exec fork` all lack `-s/--sandbox`, `-C/--cd` and `--add-dir` — only plain `codex exec` has them. For `resume` that's benign (it inherits the parent thread's sandbox), but the other two are worth care:
+**None of the `exec` sub-subcommands take a sandbox.** `exec resume`, `exec review` and `exec fork` all lack `-s/--sandbox`, `-C/--cd` and `--add-dir` — only plain `codex exec` has them. (They do take `--worktree`.) For `resume` that's benign (it inherits the parent thread's sandbox), but the other two are worth care:
 
 - `exec review` **creates** a thread, so there's nothing to inherit — it runs at whatever `~/.codex/config.toml` specifies. Don't describe it to the user as "read-only"; you haven't set it.
 - `exec fork` inherits the parent's sandbox with no way to downgrade. Forking an image thread (created under `workspace-write`) silently carries write access forward, and `codex exec fork -s read-only` is a parse error, not an escape hatch.
@@ -143,7 +157,7 @@ So: use `codex review` when you just want the review printed, and `codex exec re
 
 To keep multiple Codex threads alive and resume the *exact* one later, capture each thread's id at creation.
 
-**`codex exec --json` stdout** is JSONL using the `ThreadEvent` schema (unchanged in 0.153.4):
+**`codex exec --json` stdout** is JSONL using the `ThreadEvent` schema (re-checked on 0.165.0: `thread.started` is still the first line):
 
 | Event `type` | Carries | Path |
 |---|---|---|
@@ -184,12 +198,17 @@ codex exec -c model_reasoning_effort="high" --sandbox read-only --skip-git-repo-
 
 **Pin a cheap model for a trivial side task:**
 ```bash
-codex exec -m gpt-5.6-luna --sandbox read-only --skip-git-repo-check "list the TODOs in src/" 2>/dev/null
+codex exec -m gpt-6-luna --sandbox read-only --skip-git-repo-check "list the TODOs in src/" 2>/dev/null
 ```
 
 **Refactor with edits in workspace:**
 ```bash
 codex exec --sandbox workspace-write --skip-git-repo-check "rename foo to bar across the repo" 2>/dev/null
+```
+
+**Same, but keep the edits out of the user's tree** — codex works in a fresh worktree from the last commit (uncommitted changes are not visible to it); afterwards find it with `git worktree list`, review the diff there, and `git worktree remove` it when done:
+```bash
+codex exec --worktree --sandbox workspace-write --skip-git-repo-check "rename foo to bar across the repo" 2>/dev/null
 ```
 
 **Let codex auto-review its own escalations** (note: no `--sandbox` — the two flags can't be combined, and this is *more* permissive than `workspace-write`, so treat it as an explicit-permission call):
@@ -201,7 +220,7 @@ codex exec --approve-for-me --skip-git-repo-check "apply the fix and run the tes
 ```bash
 codex exec --sandbox danger-full-access --skip-git-repo-check "implement the spec in PLAN.md and run the tests" 2>/dev/null
 ```
-> Deliberately no `-c model_reasoning_effort` here. `max` isn't valid on every model (`gpt-5.5` and `gpt-5.4-mini` cap at `xhigh`), so pinning it against an unpinned model can fail on the user's configured default — and provoking a retry loop is the last thing you want in the least-sandboxed command in this file.
+> Deliberately no `-c model_reasoning_effort` here. Effort support is per-model and shifts between releases (on 0.153.4, `gpt-5.5` and `gpt-5.4-mini` rejected `max`), so pinning one against an unpinned model can fail on the user's configured default — and provoking a retry loop is the last thing you want in the least-sandboxed command in this file.
 
 **Long prompt via stdin:**
 ```bash
@@ -223,14 +242,14 @@ echo "follow-up question" | codex exec --skip-git-repo-check resume <UUID-or-thr
 
 **Structured output for parsing:**
 ```bash
-codex exec -m gpt-5.6-luna --sandbox read-only --skip-git-repo-check --json "list TODOs in src/, return JSON array of {file,line,text}" 2>/dev/null
+codex exec -m gpt-6-luna --sandbox read-only --skip-git-repo-check --json "list TODOs in src/, return JSON array of {file,line,text}" 2>/dev/null
 ```
 
 **Force the answer into a JSON shape** — `--output-schema` takes a JSON Schema file, and `-o` then holds exactly conforming JSON (verified: a `{colour, count}` schema returned `{"colour":"blue","count":3}` and nothing else):
 ```bash
-codex exec -m gpt-5.6-luna -c model_reasoning_effort="low" --sandbox read-only --skip-git-repo-check --output-schema /tmp/schema.json -o /tmp/out.json "<prompt>" 2>/dev/null
+codex exec -m gpt-6-luna -c model_reasoning_effort="low" --sandbox read-only --skip-git-repo-check --output-schema /tmp/schema.json -o /tmp/out.json "<prompt>" 2>/dev/null
 ```
-> Pair it with a fast model. One run of this on a high-effort model ran past 7 minutes and was killed, while the same call on `-m gpt-5.6-luna -c model_reasoning_effort=low` returned in seconds — a single observation, but enough reason not to leave structured output on a heavyweight default.
+> Pair it with a fast model. One run of this on a high-effort model ran past 7 minutes and was killed, while the same call on a luna model (`gpt-5.6-luna`, on 0.153.4) at `low` returned in seconds — a single observation, but enough reason not to leave structured output on a heavyweight default.
 
 **Save only the final message to a file:**
 ```bash
@@ -287,7 +306,6 @@ Commands:
   logout            Remove stored authentication credentials
   mcp               Manage external MCP servers for Codex
   plugin            Manage Codex plugins
-  mcp-server        Start Codex as an MCP server (stdio)
   app-server        [experimental] Run the app server or related tooling
   remote-control    [experimental] Manage the app-server daemon with remote control enabled
   app               Launch the Desktop app (opens the app installer if missing)
@@ -304,6 +322,7 @@ Commands:
   archive           Archive a saved session by id or session name
   delete            Permanently delete a saved session by id or session name
   migrate-rollouts  Inspect or migrate legacy local sessions to paginated thread history
+  migrate-nfs-db    [experimental] Migrate configured SQLite databases to DELETE mode in place
   unarchive         Unarchive a saved session by id or session name
   fork              Fork a previous interactive session (picker by default; use --last to fork the
                     most recent)

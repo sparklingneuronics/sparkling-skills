@@ -19,6 +19,7 @@ is a purpose-grouped set of skills under `plugins/<name>/`. Today there's one:
 - `plugins/dispatch/skills/codex/`, `plugins/dispatch/skills/agy/` — each has `SKILL.md`,
   `references/flags.md`, and `evals/`. Their `/`-commands live in `plugins/dispatch/commands/`.
 - `docs/PUBLISHING.md` — how to publish/update the marketplace. **Read before releasing.**
+- `CHANGELOG.md` — one entry per `dispatch` version bump, with the CLI versions verified against.
 - `docs/research/` — full background research on Claude Code plugin/marketplace mechanics.
 
 ## Conventions (please follow)
@@ -51,7 +52,7 @@ is a purpose-grouped set of skills under `plugins/<name>/`. Today there's one:
   read the CLI's source.
 
 ## Verified against
-codex-cli **0.153.4**, agy (Antigravity) **1.0.10**. Re-verify and re-stamp `references/flags.md`
+codex-cli **0.165.0**, agy (Antigravity) **1.0.10**. Re-verify and re-stamp `references/flags.md`
 when bumping support (see each skill's `evals/README.md` checklist). agy is v1.0.x and moves
 fast — expect flag churn.
 
