@@ -37,12 +37,14 @@ from pathlib import Path
 # Known codex subcommand words, used to peel the subcommand chain out of a
 # command's tokens (flags may be interleaved, e.g. `exec --foo resume`).
 SUBCOMMANDS = {
-    "exec", "resume", "review", "fork", "login", "logout", "mcp", "mcp-server",
+    "exec", "resume", "review", "fork", "login", "logout", "mcp",
     "app-server", "remote-control", "app", "completion", "update", "doctor",
     "sandbox", "debug", "apply", "archive", "delete", "unarchive", "cloud",
     "exec-server", "features", "plugin", "help",
     # added in codex-cli 0.153.x
     "agents", "queue", "migrate-rollouts",
+    # added in codex-cli 0.165.0 (`mcp-server` was removed in 0.154.0)
+    "migrate-nfs-db",
 }
 
 # Flags that consume the following token as their value. We skip that token so
@@ -55,6 +57,8 @@ VALUE_FLAGS = {
     "--remote-auth-token-env", "-a", "--ask-for-approval", "-s", "--sandbox",
     # added in codex-cli 0.153.x
     "--thread", "--message", "--thread-source", "--max-mib-per-second",
+    # added in codex-cli 0.161.0
+    "--cyber-access-program",
 }
 
 # Flags every subcommand accepts; never treat these as drift.

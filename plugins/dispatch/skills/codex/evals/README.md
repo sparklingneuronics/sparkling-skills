@@ -96,7 +96,7 @@ correct. Flag *values* (`-m gpt-5.5`, `--sandbox read-only`) and placeholders
   the feature name is consumed as its value) but errors at runtime
   (`Unknown feature flag`). Likewise `-c web_search="on"` passes the lint though
   the CLI only accepts `disabled`/`cached`/`indexed`/`live`. (Note: `--enable
-  web_search` itself is *accepted-but-deprecated* on 0.153.4, not an error.)
+  web_search` itself is still *accepted-but-deprecated* on 0.165.0, not an error.)
   Feature/config *values* are a source/CLI check, not a lint check. Handy trick:
   `--strict-config` turns an unknown `-c` key or bad value into a hard error, so
   `codex exec --strict-config -c <key>=<value> …` is a cheap way to verify one.
@@ -190,7 +190,9 @@ call per cell — the current lineup is ~48.
 This tier is what caught: `gpt-6-astra` rejecting `none` (on the *default*
 model), `gpt-5.4-mini` rejecting `max`, `ultra` being accepted everywhere while
 appearing in no API enumeration, and `minimal` failing for two different
-reasons depending on the model.
+reasons depending on the model. On the 0.165.0 re-run it caught the new default,
+`gpt-6.1-sol`, rejecting `none` too — while every other model accepts `none`
+even though the catalog lists it for none of them.
 
 **Don't wire tier 2 into pre-commit** — it costs real money and needs auth. It's
 a release-time / CLI-upgrade check. Tier 1 is cheap enough to run beside the lint.

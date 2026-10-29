@@ -186,7 +186,7 @@ Codex uses whatever your `codex` CLI treats as current - the skill deliberately 
 
 ## Maintenance
 
-Actively maintained - issues and pull requests welcome. Verified against **codex-cli 0.153.4** and **agy (Antigravity) 1.0.10**; each skill re-checks its documented commands against the installed CLI, so it fails loudly rather than silently when a CLI changes.
+Actively maintained - issues and pull requests welcome. Verified against **codex-cli 0.165.0** and **agy (Antigravity) 1.0.10**; each skill re-checks its documented commands against the installed CLI, so it fails loudly rather than silently when a CLI changes.
 
 ## License
 
