@@ -1,0 +1,22 @@
+{
+  "name": "collaboration",
+  "description": "Portable Git-based project recovery, task ownership, checkpoints, and handovers between independent local and remote coding agents.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Sparkling Neuronics",
+    "url": "https://github.com/sparklingneuronics/"
+  },
+  "homepage": "https://github.com/sparklingneuronics/sparkling-skills",
+  "repository": "https://github.com/sparklingneuronics/sparkling-skills",
+  "license": "MIT",
+  "keywords": [
+    "handover",
+    "collaboration",
+    "git",
+    "github",
+    "codex",
+    "claude-code",
+    "chatgpt",
+    "project-recovery"
+  ]
+}

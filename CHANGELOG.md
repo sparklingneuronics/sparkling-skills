@@ -1,11 +1,19 @@
 # Changelog
 
-Notable changes to the `dispatch` plugin. Version numbers are the `version` in
+Notable changes to plugins in this marketplace. For `dispatch`, version numbers are the `version` in
 `plugins/dispatch/.claude-plugin/plugin.json`, which is what decides whether existing users get an
 update (see [docs/PUBLISHING.md](docs/PUBLISHING.md)). The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Each entry lists the CLI versions the skills were verified against.
+Each released dispatch entry lists the CLI versions the skills were verified against.
+
+## collaboration — [Unreleased] (proposed 0.1.0)
+
+- Add portable `agent-handover` skill for Git-based cross-agent coordination, project recovery, bounded task ownership, checkpoints, and explicit verification handoff.
+- Add a handover template, new-chat bootstrap and short local-agent prompts, plus manual behavioral acceptance cases.
+- Register the independent collaboration plugin. Dispatch is unchanged. Live host validation pending.
+
+## dispatch
 
 ## [1.4.0] - 2026-10-29
 

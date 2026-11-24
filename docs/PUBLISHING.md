@@ -7,10 +7,11 @@ full schemas), see [`research/`](./research/).
 ## How it's wired
 
 - `.claude-plugin/marketplace.json` — the **marketplace** catalog at the repo root. Lists each
-  plugin; today just `dispatch` with `"source": "./plugins/dispatch"`.
+  plugin with its relative source, including `dispatch` and `collaboration`.
 - `plugins/<name>/.claude-plugin/plugin.json` — each **plugin's** manifest (metadata only;
   skills auto-load from that plugin's `skills/`).
-- `plugins/dispatch/skills/codex/`, `plugins/dispatch/skills/agy/` — the skills.
+- `plugins/dispatch/skills/codex/`, `plugins/dispatch/skills/agy/` — dispatch skills.
+- `plugins/collaboration/skills/agent-handover/` — portable handover skill, reference prompts and behavioral acceptance cases.
 
 The repo root is the **storefront** (marketplace); each `plugins/<name>/` is an installable
 **plugin** (a purpose-grouped set of skills). The marketplace `name` (`sparkling-skills`) is
@@ -47,6 +48,8 @@ without bumping `plugin.json`'s `version`, existing users get **no update**. So 
 
 Don't set `version` in **both** `plugin.json` and the marketplace entry — `plugin.json` wins
 silently. The marketplace entry here intentionally omits `version`.
+
+Version each plugin independently. A collaboration-only release does not require bumping dispatch. Before releasing collaboration, also exercise its manual behavioral acceptance cases and verify discovery in the supported hosts; do not claim untested compatibility.
 
 Before every release: run the eval lints (see [`../CLAUDE.md`](../CLAUDE.md)) and
 `claude plugin validate .`, and add an entry for the new version to
