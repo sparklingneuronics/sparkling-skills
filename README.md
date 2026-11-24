@@ -189,6 +189,12 @@ Add the marketplace once, then install whichever plugins you want:
 
 Switch between ChatGPT, Codex, Claude Code or other coding agents without relying on previous conversations. The `agent-handover` skill uses GitHub issues, branches, exact commits, pull requests and test evidence as durable project context. It supports read-only recovery in a fresh chat, bounded implementation, and safe checkpoints for another agent. Unlike `dispatch`, it does not invoke another CLI.
 
+**Install for Codex:** [copy-and-paste installation commands](plugins/collaboration/README.md#codex--install-for-all-projects-recommended) (global or per-project; no Claude Code needed).
+
+**Install for Claude Code:** [marketplace and manual installation commands](plugins/collaboration/README.md#claude-code--marketplace-installation-after-mergerelease).
+
+**Try before merging:** [review-branch installation and session-only preview](plugins/collaboration/README.md#preview-this-proposal-before-merge).
+
 See the [plugin guide](plugins/collaboration/README.md), [copyable new-chat prompt](plugins/collaboration/skills/agent-handover/references/CHAT-BOOTSTRAP.md), and [handover template](plugins/collaboration/skills/agent-handover/references/HANDOVER-TEMPLATE.md). Codex and repository-aware chats can use the same portable skill without installing the Claude Code marketplace plugin. The initial proposal is pending review and local validation.
 
 ## Maintenance
