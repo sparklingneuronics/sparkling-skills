@@ -1,11 +1,12 @@
 # sparkling-skills — maintainer notes
 
 This repo is a **Claude Code marketplace** (`sparkling-skills`) that hosts plugins. Each plugin
-is a purpose-grouped set of skills under `plugins/<name>/`. Today there's one:
+is a purpose-grouped set of skills under `plugins/<name>/`. The plugins are:
 
 - **`dispatch`** — delegate a task to an external AI CLI: `/codex` (OpenAI Codex) and `/agy`
   (Google Antigravity — multi-model: Gemini / Claude / GPT-OSS). `/gemini` is an alias that routes
-  to `agy`. More plugins (e.g. diagrams, journeys) drop in as sibling folders later.
+  to `agy`.
+- **`collaboration`** — portable Git-based agent handover and new-session recovery. Does not invoke external agents or depend on dispatch.
 
 > **Gemini was retired (2026-06).** Google deprecated gemini-cli's free individual tier
 > (`IneligibleTierError` → "migrate to Antigravity"), so the `gemini` skill was replaced by `agy`,
@@ -18,8 +19,9 @@ is a purpose-grouped set of skills under `plugins/<name>/`. Today there's one:
   auto-load from its `skills/`).
 - `plugins/dispatch/skills/codex/`, `plugins/dispatch/skills/agy/` — each has `SKILL.md`,
   `references/flags.md`, and `evals/`. Their `/`-commands live in `plugins/dispatch/commands/`.
+- `plugins/collaboration/skills/agent-handover/` — canonical portable skill, references and manual behavioral acceptance cases. See `plugins/collaboration/README.md`.
 - `docs/PUBLISHING.md` — how to publish/update the marketplace. **Read before releasing.**
-- `CHANGELOG.md` — one entry per `dispatch` version bump, with the CLI versions verified against.
+- `CHANGELOG.md` — version history by plugin; record CLI versions actually verified when applicable.
 - `docs/research/` — full background research on Claude Code plugin/marketplace mechanics.
 
 ## Conventions (please follow)
@@ -32,6 +34,7 @@ is a purpose-grouped set of skills under `plugins/<name>/`. Today there's one:
   - `python3 plugins/dispatch/skills/codex/evals/probe_codex_capabilities.py` — free
     tier; catches *semantic* drift the lints can't see (flags that exist but can't be
     combined, value sets that gained a variant).
+- **For collaboration changes**, run the marketplace/plugin validation and exercise the relevant cases in `plugins/collaboration/skills/agent-handover/evals/README.md`. Do not claim host compatibility based on static review alone. Keep the skill vendor-neutral; no automatic external CLI execution.
 - **Two heavier codex evals are opt-in**, not pre-commit — see
   `plugins/dispatch/skills/codex/evals/README.md`: `probe_codex_capabilities.py
   --matrix` (paid; regenerates the model×effort table in `flags.md`) and
