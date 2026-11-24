@@ -191,11 +191,11 @@ Switch between ChatGPT, Codex, Claude Code or other coding agents without relyin
 
 **Install for Codex:** [copy-and-paste installation commands](plugins/collaboration/README.md#codex--install-for-all-projects-recommended) (global or per-project; no Claude Code needed).
 
-**Install for Claude Code:** [marketplace and manual installation commands](plugins/collaboration/README.md#claude-code--marketplace-installation-after-mergerelease).
+**Install for Claude Code:** [marketplace and manual installation commands](plugins/collaboration/README.md#claude-code--marketplace-installation).
 
-**Try before merging:** [review-branch installation and session-only preview](plugins/collaboration/README.md#preview-this-proposal-before-merge).
+**See it work:** [a complete ChatGPT → local Codex/Claude Code → fresh chat example](plugins/collaboration/README.md#see-it-work).
 
-See the [plugin guide](plugins/collaboration/README.md), [copyable new-chat prompt](plugins/collaboration/skills/agent-handover/references/CHAT-BOOTSTRAP.md), and [handover template](plugins/collaboration/skills/agent-handover/references/HANDOVER-TEMPLATE.md). Codex and repository-aware chats can use the same portable skill without installing the Claude Code marketplace plugin. The initial proposal is pending review and local validation.
+See the [plugin guide](plugins/collaboration/README.md), [copyable new-chat prompt](plugins/collaboration/skills/agent-handover/references/CHAT-BOOTSTRAP.md), and [handover template](plugins/collaboration/skills/agent-handover/references/HANDOVER-TEMPLATE.md). Codex and repository-aware chats can use the same portable skill without installing the Claude Code marketplace plugin. The skill is available on the default branch; live cross-agent behavioral validation remains a separate verification step.
 
 ## Maintenance
 

@@ -4,7 +4,7 @@ Use these prompts with any repository-aware assistant, including ChatGPT, Codex 
 
 ## New chat — recover project context (read-only)
 
-Copy the following, changing the project repository URL. Pin the skill URL to an approved commit or tag for reproducibility; the example uses the proposed normal post-merge path on main. For branch review use the branch URL instead.
+Copy the following, changing the project repository URL. Pin the skill URL to an approved commit or tag for reproducibility; the example uses the default branch. For an unreleased change under review, use its branch or pinned commit URL instead.
 
 > We develop this software project using GitHub as the shared source of truth between independent remote and local coding agents.
 >
